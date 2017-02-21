@@ -15,10 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  -- exposed-modules:     Text.XML.Cursor.Indexed
-  --                    , Text.XML.Cursor.Generic.Indexed
-  exposed-modules:     Text.XML.Cursor.Generic.Indexed
+  exposed-modules:     Text.XML.Cursor.Indexed
   build-depends:       base >= 4.8 && < 5
+                     , containers
+                     , text
                      , xml-conduit
   default-language:    Haskell2010
   ghc-options:         -Wall -fwarn-incomplete-uni-patterns -fwarn-incomplete-record-updates -fwarn-monomorphism-restriction
