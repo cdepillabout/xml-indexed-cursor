@@ -293,6 +293,14 @@ attribute name = maybeToList . attributeMay name
 {-# INLINE attribute #-}
 
 -- | Similar to 'attribute' but return a 'Maybe' instead of a list.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo hello='cat' bar='3'>hello world</foo>"
+-- >>> cursor $| attributeMay "hello"
+-- Just "cat"
+-- >>> cursor $| attribute "doesntexist"
+-- Nothing
+-- >>> cursor $| child >=> attribute "attroftext"
+-- Nothing
 attributeMay :: Name -> IndexedCursor -> Maybe Text
 attributeMay n (node -> IndexedNodeElement (Element _ as _)) = Map.lookup n as
 attributeMay _ _ = Nothing
