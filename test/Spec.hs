@@ -6,6 +6,7 @@ module Main where
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Default (def)
+import Data.Maybe (catMaybes)
 import Data.Monoid ((<>))
 import Data.Text (Text, isPrefixOf)
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -77,7 +78,6 @@ cursorCheckName =
     f :: Name -> Bool
     f n = "bar" `isPrefixOf` nameLocalName n
 
-
 cursorElement :: TestTree
 cursorElement =
   testCase "has correct element" $
@@ -107,13 +107,16 @@ cursorAttributeIs =
   testCase "has correct attributeIs" $
   (length $ cursor $.// attributeIs "attr" "y") @?= 1
 
+-- | Pull out all the 'Name's of all the 'Element's pointed to by the input
+-- list. Ignore all 'IndexedCursor's that aren't pointing to 'Element's.
 name :: [IndexedCursor] -> [Text]
-name [] = []
-name (c:cs) =
-  ($ name cs) $
-  case indexedNodeNode $ node c of
-    NodeElement e -> ((nameLocalName $ elementName e) :)
-    _ -> id
+name = catMaybes . fmap getMaybeName
+  where
+    getMaybeName :: IndexedCursor -> Maybe Text
+    getMaybeName c =
+      case indexedNodeNode $ node c of
+        NodeElement e -> Just . nameLocalName $ elementName e
+        _ -> Nothing
 
 cursor :: IndexedCursor
 cursor =
