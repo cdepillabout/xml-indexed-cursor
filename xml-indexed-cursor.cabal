@@ -39,6 +39,8 @@ test-suite xml-indexed-cursor-test
   main-is:             Spec.hs
   hs-source-dirs:      test
   build-depends:       base
+                     , bytestring
+                     , data-default
                      , tasty
                      , tasty-hunit
                      , text
