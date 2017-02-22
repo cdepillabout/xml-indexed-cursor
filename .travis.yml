@@ -104,7 +104,7 @@ matrix:
     compiler: ": #stack 8.0.1 (lts-7) OSX"
     os: osx
 
-  7 env: BUILD=stack ARGS="--resolver lts-8"
+  - env: BUILD=stack ARGS="--resolver lts-8"
     compiler: ": #stack 8.0.2 (lts-8) OSX"
     os: osx
 
