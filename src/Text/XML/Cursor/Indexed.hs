@@ -31,7 +31,53 @@ lists of 'IndexedNode's, based on their location in the 'Document'.  See
 -}
 
 module Text.XML.Cursor.Indexed
-  where
+  ( -- * Cursor
+    IndexedCursor
+  , IndexedAxis
+    -- * 'NodeIndex' and 'IndexedNode'
+  , NodeIndex(..)
+  , HasNodeIndex(..)
+  , rootIndex
+  , IndexedNode(..)
+  , nodeToRootIndexedNode
+  , toChildIndex
+  , nodeToIndexedNode
+  , childNodeToIndexedNode
+  , childNodesToIndexedNodes
+    -- * Converting
+  , fromDocument
+  , fromNode
+    -- * \"check\" functions
+  , check
+  , checkIndexedNode
+  , checkElement
+  , checkName
+    -- * XPath-style functions
+  , element
+  , content
+  , attribute
+  , attributeMay
+  , laxAttribute
+  , hasAttribute
+  , attributeIs
+  , descendantElementsNamed
+  , ancestorElementsNamed
+  , descendantElementsNamedWithAttr
+  , descendantContent
+  , attrValForElemCursor
+    -- * Parse directly into 'IndexedCursor'
+  , indexedCursorFromByteString_
+  , indexedCursorFromByteString
+  , indexedCursorFromText_
+  , indexedCursorFromText
+  , indexedCursorFromByteStringWithOpts_
+  , indexedCursorFromByteStringWithOpts
+  , indexedCursorFromTextWithOpts_
+  , indexedCursorFromTextWithOpts
+    -- * Patterns
+  , pattern IndexedNodeContent
+  , pattern IndexedNodeElement
+  ) where
 
 import Control.Exception (SomeException)
 import Control.Monad ((>=>), guard)
@@ -191,7 +237,7 @@ checkElement f c =
     IndexedNodeElement e -> [c | bool $ f e]
     _ -> []
 
--- -- | Filter elements that don't pass a name check, and remove all non-elements.
+-- | Filter elements that don't pass a name check, and remove all non-elements.
 checkName :: Boolean b => (Name -> b) -> IndexedAxis
 checkName f = checkElement (f . elementName)
 {-# INLINE checkName #-}
