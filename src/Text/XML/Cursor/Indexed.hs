@@ -194,7 +194,7 @@ childNodeToIndexedNode parentIndex childIndexInt =
   nodeToIndexedNode (toChildIndex parentIndex childIndexInt)
 {-# INLINE childNodeToIndexedNode #-}
 
--- | In @'childNodesToIndexedNodes@ parentIndex childNodes@ convert a list of
+-- | In @'childNodesToIndexedNodes' parentIndex childNodes@ convert a list of
 -- 'Node' @childNodes@ to a list of 'IndexNode's using the 'NodeIndex'
 -- @parentIndex@.
 childNodesToIndexedNodes :: NodeIndex -> [Node] -> [IndexedNode]
