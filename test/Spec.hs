@@ -5,19 +5,18 @@
 module Main where
 
 import Data.ByteString.Lazy (ByteString)
-import Data.Default (def)
 import Data.Maybe (catMaybes)
 import Data.Monoid ((<>))
 import Data.Text (Text, isPrefixOf)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
-import Text.XML (parseLBS_, Element(..), Name(..), Node(..))
+import Text.XML (Element(..), Name(..), Node(..))
 import Text.XML.Cursor.Generic (($.//), ($//), child, descendant, node)
 
 import Text.XML.Cursor.Indexed
        (IndexedCursor, IndexedNode(..), attribute, attributeIs, check,
         checkElement, checkIndexedNode, checkName, content, element,
-        fromDocument, hasAttribute, laxAttribute)
+        hasAttribute, indexedCursorFromByteString_, laxAttribute)
 
 main :: IO ()
 main = defaultMain tests
@@ -119,8 +118,7 @@ name = catMaybes . fmap getMaybeName
         _ -> Nothing
 
 cursor :: IndexedCursor
-cursor =
-    fromDocument $ parseLBS_ def input
+cursor = indexedCursorFromByteString_ input
   where
     input :: ByteString
     input =

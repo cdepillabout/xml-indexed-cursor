@@ -33,25 +33,26 @@ lists of 'IndexedNode's, based on their location in the 'Document'.  See
 module Text.XML.Cursor.Indexed
   where
 
+import Control.Exception (SomeException)
 import Control.Monad ((>=>), guard)
+import Data.ByteString.Lazy (ByteString)
 import Data.Data (Data)
+import Data.Default (def)
 import Data.Function (on)
 import Data.Map (toList)
 import qualified Data.Map as Map
 import Data.Maybe (listToMaybe, maybeToList)
 import Data.Sequence (Seq, (|>), fromList)
 import Data.Text (Text, toCaseFold)
+import qualified Data.Text.Lazy as LText
 import Data.Typeable (Typeable)
 import Text.XML
        (Document, Element(Element), Name, Node(NodeContent, NodeElement),
-        documentRoot, elementAttributes, elementName, nameLocalName)
+        ParseSettings, documentRoot, elementAttributes, elementName,
+        nameLocalName, parseLBS, parseLBS_, parseText, parseText_)
 import Text.XML.Cursor (Boolean(bool))
 import Text.XML.Cursor.Generic
        (Axis, Cursor, ancestor, descendant, node, toCursor)
-
--- $setup
--- >>>
-
 
 -- | Index for a 'Node' in a 'Document'.
 --
@@ -285,6 +286,52 @@ descendantContent = descendant >=> content
 -- | Find 'attribute' with 'Name' on the element 'IndexedCursor' is pointing to.
 attrValForElemCursor :: Name -> IndexedCursor -> Maybe Text
 attrValForElemCursor attrName = listToMaybe . attribute attrName
+
+-- | This reads a 'Document' from a 'ByteString' with 'parseLBS_', and then
+-- converts that 'Document' to an 'IndexedCursor'.
+indexedCursorFromByteString_ :: ByteString -> IndexedCursor
+indexedCursorFromByteString_ = fromDocument . parseLBS_ def
+
+-- | Similar to 'indexedCursorFromByteString_' but uses 'parseLBS' instead of
+-- 'parseLBS_'.
+indexedCursorFromByteString :: ByteString -> Either SomeException IndexedCursor
+indexedCursorFromByteString = fmap fromDocument . parseLBS def
+
+-- | Similar to 'indexedCursorFromByteString_' but uses 'parseText_' instead of
+-- 'parseLBS_'.
+indexedCursorFromText_ :: LText.Text -> IndexedCursor
+indexedCursorFromText_ = fromDocument . parseText_ def
+
+-- | Similar to 'indexedCursorFromByteString_' but uses 'parseText' instead of
+-- 'parseLBS_'.
+indexedCursorFromText :: LText.Text -> Either SomeException IndexedCursor
+indexedCursorFromText = fmap fromDocument . parseText def
+
+-- | Similar to 'indexedCursorFromByteString_' but also takes 'ParseSettings'.
+indexedCursorFromByteStringWithOpts_ :: ParseSettings
+                                     -> ByteString
+                                     -> IndexedCursor
+indexedCursorFromByteStringWithOpts_ parseSettings =
+  fromDocument . parseLBS_ parseSettings
+
+-- | Similar to 'indexedCursorFromByteString' but also takes 'ParseSettings'.
+indexedCursorFromByteStringWithOpts :: ParseSettings
+                                    -> ByteString
+                                    -> Either SomeException IndexedCursor
+indexedCursorFromByteStringWithOpts parseSettings =
+  fmap fromDocument . parseLBS parseSettings
+
+-- | Similar to 'indexedCursorFromText_' but also takes 'ParseSettings'.
+indexedCursorFromTextWithOpts_ :: ParseSettings -> LText.Text -> IndexedCursor
+indexedCursorFromTextWithOpts_ parseSettings =
+  fromDocument . parseText_ parseSettings
+
+-- | Similar to 'indexedCursorFromText' but also takes 'ParseSettings'.
+indexedCursorFromTextWithOpts :: ParseSettings
+                              -> LText.Text
+                              -> Either SomeException IndexedCursor
+indexedCursorFromTextWithOpts parseSettings =
+  fmap fromDocument . parseText parseSettings
 
 -------------
 -- Helpers --
