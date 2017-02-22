@@ -15,6 +15,19 @@ Maintainer  :  Dennis Gosnell (cdep.illabout@gmail.com)
 Stability   :  experimental
 Portability :  unknown
 
+This module provides indexed 'Cursor's.  It has a very similar API to
+"Text.XML.Cursor".
+
+The big difference is in the 'Cursor' type.  'Text.XML.Cursor.Cursor' wraps
+around a 'Node', while this module's 'Cursor' type wraps around an
+'IndexedNode'.
+
+An 'IndexedNode' is a data type that contains both a 'Node' and a 'NodeIndex'.
+The 'NodeIndex' gives a way to figure out how two 'IndexedNode's compare to
+each other in the 'Document'.  It gives the ability to figure out which
+'IndexedNode' comes earlier in the 'Document'.  This gives the ability to sort
+lists of 'IndexedNode's, based on their location in the 'Document'.  See
+'NodeIndex' for more information.
 -}
 
 module Text.XML.Cursor.Indexed
@@ -67,6 +80,7 @@ newtype NodeIndex = NodeIndex
   } deriving (Data, Eq, Ord, Read, Show, Typeable)
 
 class HasNodeIndex a where
+  -- | This is basically @'Control.Lens.Lens'' a 'NodeIndex'@.
   nodeIndexLens :: Functor f => (NodeIndex -> f NodeIndex) -> a -> f a
 
 instance HasNodeIndex NodeIndex where
@@ -77,6 +91,8 @@ instance HasNodeIndex NodeIndex where
 rootIndex :: NodeIndex
 rootIndex = NodeIndex $ fromList []
 
+-- | 'IndexedNode' just wraps together a 'Node' and a 'NodeIndex' for that
+-- 'Node'.
 data IndexedNode = IndexedNode
   { indexedNodeIndex :: NodeIndex
   , indexedNodeNode :: Node
@@ -89,8 +105,16 @@ instance HasNodeIndex IndexedNode where
   nodeIndexLens =
     lens indexedNodeIndex (\indexedNode x -> indexedNode {indexedNodeIndex = x})
     where
+      lens
+        :: forall f s a b t.
+           Functor f
+        => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t
+      lens sa sbt afb s = sbt s <$> afb (sa s)
 
+-- | This is similar to 'Text.XML.Cursor.Cursor' except for 'IndexedNode'.
 type IndexedCursor = Cursor IndexedNode
+
+-- | This is similar to 'Text.XML.Cursor.Axis except for 'IndexedNode'.
 type IndexedAxis = Axis IndexedNode
 
 -- | Convert a 'Node' to a root 'IndexedNode'.
@@ -239,16 +263,22 @@ attributeIs name v c =
     IndexedNodeElement (Element _ as _) -> [c | Just v == Map.lookup name as]
     _ -> []
 
+-- | For a given 'Name', find all 'descendant' 'Element's with that 'Name'.
 descendantElementsNamed :: Name -> IndexedAxis
 descendantElementsNamed elemName = descendant >=> element elemName
 
+-- | For a given 'Name', find all 'ancestor' 'Element's. with that 'Name'.
 ancestorElementsNamed :: Name -> IndexedAxis
 ancestorElementsNamed elemName = ancestor >=> element elemName
 
+-- | In @'descendantElementsNamedWithAttr' elemName attrKey attrVal@, find all
+-- 'descendant' 'Element's with @elemName@ that have an attribute called
+-- 'attrKey' with a value of 'attrVal'.
 descendantElementsNamedWithAttr :: Name -> Name -> Text -> IndexedAxis
 descendantElementsNamedWithAttr elemName attrKey attrVal =
   descendantElementsNamed elemName >=> attributeIs attrKey attrVal
 
+-- | Find all 'content' in all 'descendant's.
 descendantContent :: IndexedCursor -> [Text]
 descendantContent = descendant >=> content
 
@@ -266,8 +296,3 @@ pattern IndexedNodeContent c <- IndexedNode _ (NodeContent c)
 pattern IndexedNodeElement :: Element -> IndexedNode
 pattern IndexedNodeElement e <- IndexedNode _ (NodeElement e)
 
-lens
-  :: forall f s a b t.
-     Functor f
-  => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t
-lens sa sbt afb s = sbt s <$> afb (sa s)

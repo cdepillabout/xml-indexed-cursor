@@ -1,6 +1,6 @@
 name:                xml-indexed-cursor
 version:             0.1.0.0
-synopsis:            Quasi-quoters for XML and HTML Documents
+synopsis:            Indexed XML cursors similar to 'Text.XML.Cursor' from xml-conduit
 description:         Please see <https://github.com/cdepillabout/xml-indexed-cursor#readme README.md>.
 homepage:            https://github.com/cdepillabout/xml-indexed-cursor
 license:             BSD3

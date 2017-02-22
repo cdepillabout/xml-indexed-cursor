@@ -8,4 +8,5 @@ Text.XML.Cursor.Indexed
 [![Stackage Nightly](http://stackage.org/package/xml-indexed-cursor/badge/nightly)](http://stackage.org/nightly/package/xml-indexed-cursor)
 ![BSD3 license](https://img.shields.io/badge/license-BSD3-blue.svg)
 
-`xml-indexed-cursor`
+`Text.XML.Cursor.Indexed` provides indexed `Cursor`s.  It has a very
+similar API to `Text.XML.Cursor`.
