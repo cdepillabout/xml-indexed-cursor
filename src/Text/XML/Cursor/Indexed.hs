@@ -100,6 +100,9 @@ import Text.XML.Cursor (Boolean(bool))
 import Text.XML.Cursor.Generic
        (Axis, Cursor, ancestor, descendant, node, toCursor)
 
+-- $setup
+-- >>> import Text.XML.Cursor.Generic (($|), child)
+
 -- | Index for a 'Node' in a 'Document'.
 --
 -- The root element has a value of '[]'.  Every child element is given an
@@ -256,18 +259,35 @@ element n = checkName (== n)
 -- XPath: /The node test text() is true for any text node./
 --
 -- Note that this is not strictly an 'Axis', but will work with most combinators.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo>hello<bar/>bye</foo>"
+-- >>> cursor $| child >=> content
+-- ["hello","bye"]
+-- >>> cursor $| child >=> child >=> content
+-- []
 content :: IndexedCursor -> [Text]
 content (node -> IndexedNodeContent v) = [v]
 content _ = []
 {-# INLINE content #-}
 
--- | Select attributes on the current element (or nothing if it is not an element). XPath:
--- /the attribute axis contains the attributes of the context node; the axis will be empty unless the context node is an element/
+-- | Select attributes on the current element (or nothing if it is not an
+-- element).
+--
+-- XPath: /the attribute axis contains the attributes of the context node; the
+-- axis will be empty unless the context node is an element/
 --
 -- Note that this is not strictly an 'Axis', but will work with most combinators.
 --
 -- The return list of the generalised axis contains as elements lists of 'Content'
 -- elements, each full list representing an attribute value.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo hello='cat' bar='3'>hello world</foo>"
+-- >>> cursor $| attribute "hello"
+-- ["cat"]
+-- >>> cursor $| attribute "doesntexist"
+-- []
+-- >>> cursor $| child >=> attribute "attroftext"
+-- []
 attribute :: Name -> IndexedCursor -> [Text]
 attribute name = maybeToList . attributeMay name
 {-# INLINE attribute #-}
