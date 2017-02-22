@@ -374,6 +374,12 @@ descendantContent :: IndexedCursor -> [Text]
 descendantContent = descendant >=> content
 
 -- | Find 'attribute' with 'Name' on the element 'IndexedCursor' is pointing to.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo hello='3'/>"
+-- >>> attrValForElemCursor "hello" cursor
+-- Just "3"
+-- >>> attrValForElemCursor "bye" cursor
+-- Nothing
 attrValForElemCursor :: Name -> IndexedCursor -> Maybe Text
 attrValForElemCursor attrName = listToMaybe . attribute attrName
 
