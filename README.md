@@ -8,4 +8,6 @@ Text.XML.Cursor.Indexed
 [![Stackage Nightly](http://stackage.org/package/xml-indexed-cursor/badge/nightly)](http://stackage.org/nightly/package/xml-indexed-cursor)
 ![BSD3 license](https://img.shields.io/badge/license-BSD3-blue.svg)
 
-See the [module documentation]() for more information.
+See the [module
+documentation](http://hackage.haskell.org/package/xml-indexed-cursor) for more
+information.
