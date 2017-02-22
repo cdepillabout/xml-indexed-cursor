@@ -164,7 +164,7 @@ instance HasNodeIndex IndexedNode where
 -- | This is similar to 'Text.XML.Cursor.Cursor' except for 'IndexedNode'.
 type IndexedCursor = Cursor IndexedNode
 
--- | This is similar to 'Text.XML.Cursor.Axis except for 'IndexedNode'.
+-- | This is similar to 'Text.XML.Cursor.Axis' except for 'IndexedNode'.
 type IndexedAxis = Axis IndexedNode
 
 -- | Convert a 'Node' to a root 'IndexedNode'.
