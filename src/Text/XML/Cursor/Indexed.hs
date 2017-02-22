@@ -297,9 +297,7 @@ attribute name = maybeToList . attributeMay name
 -- >>> let cursor = indexedCursorFromText_ "<foo hello='cat' bar='3'>hello world</foo>"
 -- >>> cursor $| attributeMay "hello"
 -- Just "cat"
--- >>> cursor $| attribute "doesntexist"
--- Nothing
--- >>> cursor $| child >=> attribute "attroftext"
+-- >>> cursor $| attributeMay "doesntexist"
 -- Nothing
 attributeMay :: Name -> IndexedCursor -> Maybe Text
 attributeMay n (node -> IndexedNodeElement (Element _ as _)) = Map.lookup n as
@@ -316,6 +314,16 @@ attributeMay _ _ = Nothing
 --
 -- The return list of the generalised axis contains as elements lists of 'Content'
 -- elements, each full list representing an attribute value.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo HellO='cat'/>"
+-- >>> cursor $| laxAttribute "HellO"
+-- ["cat"]
+-- >>> cursor $| laxAttribute "Hello"
+-- ["cat"]
+-- >>> cursor $| laxAttribute "hello"
+-- ["cat"]
+-- >>> cursor $| laxAttribute "bye"
+-- []
 laxAttribute :: Text -> IndexedCursor -> [Text]
 laxAttribute n (node -> IndexedNodeElement e) = do
   (n', v) <- toList $ elementAttributes e
@@ -354,6 +362,14 @@ descendantElementsNamedWithAttr elemName attrKey attrVal =
   descendantElementsNamed elemName >=> attributeIs attrKey attrVal
 
 -- | Find all 'content' in all 'descendant's.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo>hello<bar>lala</bar>bye</foo>"
+-- >>> descendantContent cursor
+-- ["hello","lala","bye"]
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo/>"
+-- >>> descendantContent cursor
+-- []
 descendantContent :: IndexedCursor -> [Text]
 descendantContent = descendant >=> content
 
