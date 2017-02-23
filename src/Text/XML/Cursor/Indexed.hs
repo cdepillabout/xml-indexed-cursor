@@ -1,8 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
 {- |
@@ -39,6 +41,7 @@ module Text.XML.Cursor.Indexed
   , HasNodeIndex(..)
   , rootIndex
   , IndexedNode(..)
+  , indexedCursorNodeIndex
   , nodeToRootIndexedNode
   , toChildIndex
   , nodeToIndexedNode
@@ -49,7 +52,7 @@ module Text.XML.Cursor.Indexed
   , fromNode
   , toCursor
   , node
-    -- * Generic Functions Re-exported from "Text.XML.Cursor.Generic"
+    -- * Generic functions re-exported from "Text.XML.Cursor.Generic"
   , child
   , parent
   , precedingSibling
@@ -59,7 +62,7 @@ module Text.XML.Cursor.Indexed
   , orSelf
   , preceding
   , following
-    -- * Generic Operators Re-exported from "Text.XML.Cursor.Generic"
+    -- * Generic operators re-exported from "Text.XML.Cursor.Generic"
   , (&|)
   , (&/)
   , (&//)
@@ -99,6 +102,8 @@ module Text.XML.Cursor.Indexed
     -- * Patterns
   , pattern IndexedNodeContent
   , pattern IndexedNodeElement
+    -- * Helper functions used in examples
+    -- $setup
   ) where
 
 import Control.Exception (SomeException)
@@ -126,7 +131,11 @@ import Text.XML.Cursor.Generic
         precedingSibling, toCursor)
 
 -- $setup
--- >>> import Text.XML.Cursor.Generic (($|), child)
+-- >>> import Data.Functor.Const (Const(..))
+-- >>> :{
+-- let view :: forall s a. ((a -> Const a a) -> s -> Const a s) -> s -> a
+--     view l = getConst . l Const
+-- :}
 
 -- | Index for a 'Node' in a 'Document'.
 --
@@ -136,20 +145,66 @@ import Text.XML.Cursor.Generic
 -- there are multiple root elements, then '[]' acts as a \"virtual\" root
 -- element that contains all actual root elements.
 --
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar/></foo>"
+-- >>> unNodeIndex $ indexedCursorNodeIndex cursor
+-- fromList []
+--
+-- This function will be used in the following examples.
+--
+-- >>> :{
+-- let getNodeIndex :: [IndexedCursor] -> Seq Int
+--     getNodeIndex = unNodeIndex . indexedCursorNodeIndex . head
+-- :}
+--
 -- The index of the first child of the root be @[0]@
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar/><baz/></foo>"
+-- >>> getNodeIndex $ child cursor
+-- fromList [0]
 --
 -- The index of the second child of the root would be @[1]@.
 --
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar/><baz/></foo>"
+-- >>> getNodeIndex $ cursor $| child >=> followingSibling
+-- fromList [1]
+--
 -- The index of the third child of the root would be @[2]@.
+--
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar/><baz/><zap/></foo>"
+-- >>> getNodeIndex $ cursor $| child >=> followingSibling >=> followingSibling
+-- fromList [2]
 --
 -- The index of the first child of the first child of the root would be
 -- @[0, 0]@.
 --
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar><hello/></bar></foo>"
+-- >>> getNodeIndex $ cursor $| child >=> child
+-- fromList [0,0]
+--
 -- The index of the second child of the first child of the root would be
 -- @[0, 1]@ (since the @[Int]@ is stored reversed).
 --
--- The index of the third child of the fifth child of the root would be
--- @[4, 2]@.
+-- >>> let cursor = indexedCursorFromText_ "<foo><bar><hello/><bye/></bar></foo>"
+-- >>> getNodeIndex $ cursor $| child >=> child >=> followingSibling
+-- fromList [0,1]
+--
+-- The index of the third child of the fourth child of the root would be
+-- @[3, 2]@.
+--
+-- >>> let doc = "<foo><zero/><one/><two/><three><sub0/><sub1/><sub2/></three></foo>"
+-- >>> let cursor = indexedCursorFromText_ doc
+-- >>> :{
+-- let xpath =
+--       child >=>                 -- focusing on <zero/>
+--       followingSibling >=>      -- focusing on <one/>
+--       followingSibling >=>      -- focusing on <two/>
+--       followingSibling >=>      -- focusing on <three/>
+--           child >=>             -- focusing on the <sub0/> element
+--           followingSibling >=>  -- focusing on the <sub1/> element
+--           followingSibling      -- focusing on the <sub2/> eleemnt
+-- in getNodeIndex $ xpath cursor
+-- :}
+-- fromList [3,2]
 newtype NodeIndex = NodeIndex
   { unNodeIndex :: Seq Int
   } deriving (Data, Eq, Ord, Read, Show, Typeable)
@@ -179,18 +234,17 @@ instance HasNodeIndex IndexedNode where
     => (NodeIndex -> f NodeIndex) -> IndexedNode -> f IndexedNode
   nodeIndexLens =
     lens indexedNodeIndex (\indexedNode x -> indexedNode {indexedNodeIndex = x})
-    where
-      lens
-        :: forall f s a b t.
-           Functor f
-        => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t
-      lens sa sbt afb s = sbt s <$> afb (sa s)
 
 -- | This is similar to 'Text.XML.Cursor.Cursor' except for 'IndexedNode'.
 type IndexedCursor = Cursor IndexedNode
 
 -- | This is similar to 'Text.XML.Cursor.Axis' except for 'IndexedNode'.
 type IndexedAxis = Axis IndexedNode
+
+-- | Get the 'NodeIndex' from the 'IndexedNode' pointed to by an
+-- 'IndexedCursor'.
+indexedCursorNodeIndex :: IndexedCursor -> NodeIndex
+indexedCursorNodeIndex = indexedNodeIndex . node
 
 -- | Convert a 'Node' to a root 'IndexedNode'.
 nodeToRootIndexedNode :: Node -> IndexedNode
@@ -464,3 +518,8 @@ pattern IndexedNodeContent c <- IndexedNode _ (NodeContent c)
 pattern IndexedNodeElement :: Element -> IndexedNode
 pattern IndexedNodeElement e <- IndexedNode _ (NodeElement e)
 
+lens
+  :: forall f s a b t.
+     Functor f
+  => (s -> a) -> (s -> b -> t) -> (a -> f b) -> s -> f t
+lens sa sbt afb s = sbt s <$> afb (sa s)
