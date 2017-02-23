@@ -47,12 +47,34 @@ module Text.XML.Cursor.Indexed
     -- * Converting
   , fromDocument
   , fromNode
-    -- * \"check\" functions
+  , toCursor
+  , node
+    -- * Generic Functions Re-exported from "Text.XML.Cursor.Generic"
+  , child
+  , parent
+  , precedingSibling
+  , followingSibling
+  , ancestor
+  , descendant
+  , orSelf
+  , preceding
+  , following
+    -- * Generic Operators Re-exported from "Text.XML.Cursor.Generic"
+  , (&|)
+  , (&/)
+  , (&//)
+  , (&.//)
+  , ($|)
+  , ($/)
+  , ($//)
+  , ($.//)
+  , (>=>)
+    -- * \"check\" functions for 'IndexedCursor'
   , check
   , checkIndexedNode
   , checkElement
   , checkName
-    -- * XPath-style functions
+    -- * XPath-style functions for 'IndexedCursor'
   , element
   , content
   , attribute
@@ -98,7 +120,10 @@ import Text.XML
         nameLocalName, parseLBS, parseLBS_, parseText, parseText_)
 import Text.XML.Cursor (Boolean(bool))
 import Text.XML.Cursor.Generic
-       (Axis, Cursor, ancestor, descendant, node, toCursor)
+       (Axis, Cursor, ($.//), ($/), ($//), ($|), (&.//), (&/), (&//),
+        (&|), ancestor, child, descendant, following,
+        followingSibling, node, orSelf, parent, preceding,
+        precedingSibling, toCursor)
 
 -- $setup
 -- >>> import Text.XML.Cursor.Generic (($|), child)
