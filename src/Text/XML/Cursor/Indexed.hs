@@ -102,8 +102,6 @@ module Text.XML.Cursor.Indexed
     -- * Patterns
   , pattern IndexedNodeContent
   , pattern IndexedNodeElement
-    -- * Helper functions used in examples
-    -- $setup
   ) where
 
 import Control.Exception (SomeException)
@@ -129,13 +127,6 @@ import Text.XML.Cursor.Generic
         (&|), ancestor, child, descendant, following,
         followingSibling, node, orSelf, parent, preceding,
         precedingSibling, toCursor)
-
--- $setup
--- >>> import Data.Functor.Const (Const(..))
--- >>> :{
--- let view :: forall s a. ((a -> Const a a) -> s -> Const a s) -> s -> a
---     view l = getConst . l Const
--- :}
 
 -- | Index for a 'Node' in a 'Document'.
 --
